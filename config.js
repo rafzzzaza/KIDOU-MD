@@ -119,18 +119,12 @@ global.backupGroupLink = global.links.backupGroup;
 // Semua key di bawah ini WAJIB diisi lewat environment variable.
 // Lihat .env.example. JANGAN pernah commit nilai aslinya ke git.
 global.secrets = {
-	// Google API key (YouTube InnerTube, Google Drive, Firebase)
+	// Google API key (YouTube InnerTube, Google Drive, removebg auth)
 	googleApiKey: process.env.GOOGLE_API_KEY || '',
-
-	// Alight Motion premium generator (Firebase anon key)
-	amFirebaseKey: process.env.AM_FIREBASE_KEY || '',
 
 	// GitHub personal access token untuk uploader (tools-upgh)
 	// Butuh scope: repo
 	githubToken: process.env.GITHUB_TOKEN || '',
-
-	// Token internal Alight Motion (AMPrem) - opsional
-	amInternalToken: process.env.AM_INTERNAL_TOKEN || '',
 
 	// Refresh token PhotoRoom untuk removebg - opsional
 	photoroomRefreshToken: process.env.PHOTOROOM_REFRESH_TOKEN || '',
