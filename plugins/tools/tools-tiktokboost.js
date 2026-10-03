@@ -99,4 +99,13 @@ handler.command = /^(tiktokboost|ttboost|boosttiktok)$/i;
 handler.limit = 3;
 handler.group = false;
 
+
+/* ============================================================
+ * DISABLED - endpoint mati
+ * Alasan: omegatech-api.dixonomega.tech - resolve to 127.0.0.1
+ * Diperbaiki 2026-10-03. Hapus baris ini setelah endpoint
+ * diganti dengan API yang hidup.
+ * ============================================================ */
+handler.disabled = true
+
 export default handler;

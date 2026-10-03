@@ -113,4 +113,13 @@ handler.tags = ['tools']
 handler.command = /^(nftoken|nft|netflixtoken)$/i
 handler.limit = true
 
+
+/* ============================================================
+ * DISABLED - endpoint mati
+ * Alasan: omegatech - resolve to 127.0.0.1
+ * Diperbaiki 2026-10-03. Hapus baris ini setelah endpoint
+ * diganti dengan API yang hidup.
+ * ============================================================ */
+handler.disabled = true
+
 export default handler

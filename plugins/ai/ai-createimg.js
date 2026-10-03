@@ -212,6 +212,15 @@ handler.help = ['createimg'];
 handler.tags = ['ai'];
 handler.command = /^(createimg)$/i;
 
+
+/* ============================================================
+ * DISABLED - endpoint mati
+ * Alasan: api.nekolabs.web.id - host root 404, path 404 (GET+POST)
+ * Diperbaiki 2026-10-03. Hapus baris ini setelah endpoint
+ * diganti dengan API yang hidup.
+ * ============================================================ */
+handler.disabled = true
+
 export default handler;
 
 async function bypassTurnstile() {

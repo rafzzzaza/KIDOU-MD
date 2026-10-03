@@ -54,4 +54,13 @@ handler.tags = ['tools']
 handler.premium = true
 handler.command = /^spamotp$/i
 
+
+/* ============================================================
+ * DISABLED - endpoint mati
+ * Alasan: api.theresav.biz.id - 502
+ * Diperbaiki 2026-10-03. Hapus baris ini setelah endpoint
+ * diganti dengan API yang hidup.
+ * ============================================================ */
+handler.disabled = true
+
 export default handler

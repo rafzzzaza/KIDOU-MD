@@ -182,4 +182,13 @@ handler.tags = ['tools']
 handler.command = /^tempmail|cekmail|pesanmail$/i
 handler.premium = false
 
+
+/* ============================================================
+ * DISABLED - endpoint mati
+ * Alasan: tempail.top/api - 404 GET+POST, no alternative path
+ * Diperbaiki 2026-10-03. Hapus baris ini setelah endpoint
+ * diganti dengan API yang hidup.
+ * ============================================================ */
+handler.disabled = true
+
 export default handler

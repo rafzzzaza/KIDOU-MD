@@ -153,4 +153,13 @@ handler.command = /^komiku$/i
 handler.limit = true
 handler.register = true
 
+
+/* ============================================================
+ * DISABLED - endpoint mati
+ * Alasan: api.nexray.eu.cc/anime/komiku - 404 GET+POST
+ * Diperbaiki 2026-10-03. Hapus baris ini setelah endpoint
+ * diganti dengan API yang hidup.
+ * ============================================================ */
+handler.disabled = true
+
 export default handler

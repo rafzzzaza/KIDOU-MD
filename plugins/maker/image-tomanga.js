@@ -63,4 +63,13 @@ handler.command = /^(tomanga|manga)$/i
 handler.register = true
 handler.limit = true
 
+
+/* ============================================================
+ * DISABLED - endpoint mati
+ * Alasan: api.theresav.eu - 502
+ * Diperbaiki 2026-10-03. Hapus baris ini setelah endpoint
+ * diganti dengan API yang hidup.
+ * ============================================================ */
+handler.disabled = true
+
 export default handler

@@ -106,4 +106,13 @@ handler.help = ['iqc2 <text>|<chatTime>|<statusTime>']
 handler.tags = ['maker']
 handler.command = ['iqc2']
 
+
+/* ============================================================
+ * DISABLED - endpoint mati
+ * Alasan: anabot.my.id - timeout 45s
+ * Diperbaiki 2026-10-03. Hapus baris ini setelah endpoint
+ * diganti dengan API yang hidup.
+ * ============================================================ */
+handler.disabled = true
+
 export default handler

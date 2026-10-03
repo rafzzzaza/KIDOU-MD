@@ -26,4 +26,13 @@ handler.tags = ['anime']
 handler.command = /^animerandom$/i
 handler.limit = true
 
+
+/* ============================================================
+ * DISABLED - endpoint mati
+ * Alasan: lance-frank-asta.onrender.com - 404
+ * Diperbaiki 2026-10-03. Hapus baris ini setelah endpoint
+ * diganti dengan API yang hidup.
+ * ============================================================ */
+handler.disabled = true
+
 export default handler
