@@ -50,36 +50,40 @@ async function searchByQuery(query) {
     const { data } = await axios.post(url, { query }, {
       headers: {
         "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0",
         Origin: "https://stickers.wiki",
         Referer: "https://stickers.wiki/id/telegram/search/",
       },
+      timeout: 20000,
     })
 
     if (!Array.isArray(data) || data.length < 3) return []
 
-    const links = []
-    const slugs = new Set()
+    // Respons-nya format "devalue": data[0] = daftar indeks ke object pack,
+    // lalu tiap object { i, s, n, ... } memakai INTEGER sebagai pointer ke
+    // elemen lain di array yang sama. Jadi slug ada di data[obj.s], BUKAN
+    // di data[idx + 1].
     const indices = data[0]
     if (!Array.isArray(indices)) return []
 
-    indices.forEach(idx => {
-      if (idx < data.length) {
-        const item = data[idx]
-        if (typeof item === "object" && item !== null &&
-          's' in item && 'n' in item && 'f' in item && 'c' in item && 'r' in item && 'l' in item) {
-          const slugIndex = idx + 1
-          if (slugIndex < data.length && typeof data[slugIndex] === "string") {
-            const slug = data[slugIndex]
-            if (/^[a-zA-Z][a-zA-Z0-9_\-]{2,}$/.test(slug)) {
-              slugs.add(slug)
-            }
-          }
-        }
+    const deref = (v) =>
+      typeof v === 'number' && v >= 0 && v < data.length ? data[v] : v
+
+    const slugs = new Set()
+
+    indices.forEach((idx) => {
+      if (typeof idx !== 'number' || idx < 0 || idx >= data.length) return
+      const item = data[idx]
+      if (!item || typeof item !== 'object') return
+
+      const slug = deref(item.s)
+      if (typeof slug === 'string' && /^[a-z0-9][a-z0-9_-]{2,}$/i.test(slug)) {
+        slugs.add(slug)
       }
     })
 
-    slugs.forEach(slug => {
+    const links = []
+    slugs.forEach((slug) => {
       links.push(`https://stickers.wiki/id/telegram/${slug}/`)
     })
 
@@ -93,23 +97,45 @@ async function searchByQuery(query) {
 async function download(url) {
   try {
     const { data } = await axios.get(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0' }
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0',
+        'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8',
+      },
+      timeout: 25000,
+      // sticker.wiki redirect ke /404/ kalau slug tidak ada; tanpa ini
+      // axios lempar sebelum sempat membaca halaman
+      maxRedirects: 5,
+      validateStatus: (s) => s >= 200 && s < 400,
     })
 
-    const $ = cheerio.load(data)
-    const title = $("h1.line-clamp-2.w-full.text-center.text-2xl.font-semibold").text().trim()
-    const sticker = []
+    const html = typeof data === 'string' ? data : String(data)
+    const $ = cheerio.load(html)
+    const title =
+      $("h1.line-clamp-2.w-full.text-center.text-2xl.font-semibold").text().trim() ||
+      $('h1').first().text().trim() ||
+      'Sticker Pack'
 
-    $("div[onclick*='sticker-dialog'] script[type='application/ld+json']").each((_, el) => {
+    const sticker = []
+    // ambil semua ld+json di halaman, tidak cuma yang di dalam sticker-dialog
+    $("script[type='application/ld+json']").each((_, el) => {
       try {
-        const jsonData = JSON.parse($(el).html())
-        if (jsonData.contentUrl && jsonData.contentUrl.endsWith('.webp')) {
-          sticker.push(jsonData.contentUrl)
+        const parsed = JSON.parse($(el).html())
+        const items = Array.isArray(parsed) ? parsed : [parsed]
+        for (const it of items) {
+          if (it && typeof it.contentUrl === 'string' && /\.webp$/i.test(it.contentUrl)) {
+            sticker.push(it.contentUrl)
+          }
         }
       } catch {}
     })
 
-    return { title, sticker }
+    // fallback: regex polos kalau format ld+json berubah
+    if (!sticker.length) {
+      const matches = html.match(/https:\/\/assets\.stickers\.wiki\/img\/[a-f0-9]+\.webp/gi)
+      if (matches) sticker.push(...[...new Set(matches)])
+    }
+
+    return { title, sticker: [...new Set(sticker)] }
   } catch (err) {
     console.error("Download Error:", err.message)
     return null
