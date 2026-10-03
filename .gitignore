@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# WhatsApp session / auth (NEVER commit - contains login credentials)
+sessions/
+*.json.bak
+*-auth-info.json
+!*auth-info.json.example
+
+# Runtime temp media
+tmp/
+
+# Secrets & credentials
+.env
+.env.*
+!.env.example
+cookies.txt
+tokenai.txt
+tokengithub.txt
+google-services.json
+*-key.json
+key.json
+
+# Database (contains live user data)
+database.json
+database.json.tmp*
+# database/ holds bundled content (alight-effects.json etc) - keep it
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Backup files
+*.bak
+*.orig
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
