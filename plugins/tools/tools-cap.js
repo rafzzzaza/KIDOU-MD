@@ -43,8 +43,8 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
   }
 }
 
-handler.help = ['caption <teks>']
+handler.help = ['cap2 <text>']
 handler.tags = ['tools']
-handler.command = ['caption', 'cap']
+handler.command = /^(cap2|caption2)$/i
 
 export default handler

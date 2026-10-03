@@ -49,7 +49,7 @@ let handler = async (m, { command, isPrems }) => {
 
 handler.help = ['harian', 'mingguan', 'bulanan'];
 handler.tags = ['rpg'];
-handler.command = /^(harian|claim|mingguan|weekly|monthly|bulanan)$/i;
+handler.command = /^(harian|mingguan|weekly|bulanan|monthly)$/i;
 
 export default handler;
 

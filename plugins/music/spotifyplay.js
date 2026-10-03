@@ -54,9 +54,9 @@ ${usedPrefix + command} https://open.spotify.com/track/xxxx`)
   }
 }
 
-handler.help = ['spotify']
+handler.help = ['spotifyplay']
 handler.tags = ['downloader']
-handler.command = /^spotify$/i
+handler.command = /^spotifyplay$/i
 handler.limit = true
 
 export default handler

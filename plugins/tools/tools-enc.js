@@ -40,7 +40,7 @@ let handler = async (m, { conn, text }) => {
 
 handler.help = ['enc <code>']
 handler.tags = ['tools']
-handler.command = /^enc$/i
+handler.command = /^encrypt2$/i
 handler.limit = true
 
 export default handler

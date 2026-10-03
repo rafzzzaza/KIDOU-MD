@@ -16,9 +16,9 @@ let handler = async (m, { conn }) => {
   m.reply(teks)
 }
 
-handler.help = ['listgc']
+handler.help = ['listgc', 'listgrup']
 handler.tags = ['owner']
-handler.command = /^list(gc|grup)?$/i
+handler.command = /^(listgc|listgrup)$/i
 handler.limit = false
 handler.owner = true 
 

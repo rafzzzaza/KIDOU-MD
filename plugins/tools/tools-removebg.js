@@ -108,6 +108,6 @@ let handler = async (m, { conn, usedPrefix, command }) => {
 
 handler.help = ['removebg']
 handler.tags = ['tools']
-handler.command = ['removebg', 'rbg']
+handler.command = /^(removebg|rbg)$/i
 
 export default handler

@@ -81,8 +81,8 @@ ${usedPrefix + command} https://open.spotify.com/track/3M0lSi5WW79CXQamgSBIjx`)
 }
 
 handler.help = ['spotify <judul/url>']
-handler.tags = ['downloader']
-handler.command = /^(spotify|spotifydl|spdl|spotifymp3)$/i
+handler.tags = ['downloader', 'music']
+handler.command = /^(spotifydl|spdl|spotifymp3)$/i
 handler.register = true
 handler.limit = true
 

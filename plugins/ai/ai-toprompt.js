@@ -103,7 +103,7 @@ ${result.prompt}
 
 handler.help = ['imageprompt']
 handler.tags = ['ai']
-handler.command = ['imageprompt', 'imgprompt', 'toprompt']
+handler.command = ['imageprompt', 'toprompt']
 handler.limit = true
 
 export default handler

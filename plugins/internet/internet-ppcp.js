@@ -9,9 +9,9 @@ let handler = async (m, { conn }) => {
   let ciwi = await(await fetch(cita.cewe)).buffer()
   await conn.sendFile(m.chat, ciwi, '', '♀️', m)
 }
-handler.help = ['ppcouple', 'ppcp']
+handler.help = ['ppcp2', 'ppcouple2']
 handler.tags = ['internet']
-handler.command = /^(pp(cp|couple))$/i
+handler.command = /^(ppcp2|ppcouple2)$/i
 handler.limit = true
 
 export default handler

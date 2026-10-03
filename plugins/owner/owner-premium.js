@@ -101,9 +101,9 @@ Status premium dihapus pada ${new Date().toLocaleDateString()}.`
   }
 }
 
-handler.help = ['addprem <hari> <@tag/nomor>', 'delprem <@tag/nomor>']
+handler.help = ['addprem <hari> <@tag/nomor>']
 handler.tags = ['owner']
-handler.command = /^(add|tambah|\+|del|hapus|-)p(rem)?$/i
+handler.command = /^(add|tambah|\+)prem$/i
 handler.owner = true
 
 export default handler

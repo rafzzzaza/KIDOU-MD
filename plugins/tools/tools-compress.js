@@ -47,8 +47,8 @@ let handler = async (m, { conn }) => {
     );
 };
 
-handler.command = /^compress$/i;
+handler.command = /^compress2$/i;
 handler.tags = ["tools"];
-handler.help = ["compress"];
+handler.help = ["compress2"];
 
 export default handler;

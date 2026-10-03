@@ -81,6 +81,6 @@ let handler = async (m, { conn, text }) => {
 
 handler.help = ['facebook <link>'];
 handler.tags = ['downloader'];
-handler.command = /^fb|facebook|fbdl$/i;
+handler.command = /^(fb|facebook|fbdl)$/i;
 handler.limit = true;
 export default handler;

@@ -29,8 +29,8 @@ let handler = async (m, { conn, text }) => {
   }
 }
 
-handler.help = ['cekidgc']
+handler.help = ['cekidgc2', 'idgc2']
 handler.tags = ['tools']
-handler.command = /^(cekidgc|idgc)$/i
+handler.command = /^(cekidgc2|idgc2)$/i
 
 export default handler

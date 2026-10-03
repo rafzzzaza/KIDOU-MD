@@ -50,7 +50,7 @@ Berhasil dihapus
 
 handler.help = ['removebg2']
 handler.tags = ['tools']
-handler.command = /^removebg2?$/i
+handler.command = /^removebg2$/i
 handler.limit = true
 
 export default handler

@@ -12,7 +12,7 @@ let handler = async (m) => {
 
 handler.help = ['rvo'];
 handler.tags = ['tools'];
-handler.command = /^rvo|read/i;
+handler.command = /^(rvo|read)$/i;
 handler.register = false;
 
 export default handler;

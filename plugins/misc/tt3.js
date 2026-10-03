@@ -93,9 +93,9 @@ let handler = async (m, { text, usedPrefix, command, conn }) => {
   }
 }
 
-handler.help = ['tt', 'ttdl', 'tiktok']
+handler.help = ['tt3', 'ttdl2', 'tiktok3']
 handler.tags = ['downloader']
-handler.command = /^(tt3|ttdl|tiktok)$/i
+handler.command = /^(tt3|ttdl2|tiktok3)$/i
 handler.limit = true
 
 export default handler
