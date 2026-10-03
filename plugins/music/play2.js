@@ -47,32 +47,101 @@ const MAX_COMPRESSED_AUDIO_SIZE = MAX_COMPRESSED_AUDIO_MB * 1024 * 1024;
 const LRCLIB_API = 'https://lrclib.net/api';
 const LRCLIB_USER_AGENT = `${global.namebot || 'Bot'}-Play2/1.0 (https://github.com/)`;
 
+function normalizeForSearch(s = '') {
+  return String(s)
+    .toLowerCase()
+    .replace(/\(.*?\)|\[.*?\]/g, '')      // buang kurung
+    .replace(/feat\.?|ft\.?|remix|live|official music video|lyrics?/gi, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function pickBestLyricHit(hits, { title, artist, duration }) {
+  if (!Array.isArray(hits) || !hits.length) return null;
+
+  const wantTitle = normalizeForSearch(title);
+  const wantArtist = normalizeForSearch(artist);
+  const dur = Number(duration) || 0;
+
+  let best = null;
+  let bestScore = -1;
+
+  for (const h of hits) {
+    const ht = normalizeForSearch(h.trackName || '');
+    const ha = normalizeForSearch(h.artistName || '');
+    const hd = Number(h.duration || 0);
+
+    let score = 0;
+    if (ht && (ht === wantTitle || ht.includes(wantTitle) || wantTitle.includes(ht))) score += 50;
+    else if (ht && wantTitle && (ht.includes(wantTitle.split(' ')[0]))) score += 15;
+
+    if (ha && (ha === wantArtist || ha.includes(wantArtist) || wantArtist.includes(ha))) score += 30;
+
+    // durasi jadi penentu besar: lagu live/remix beda jauh
+    if (dur && hd) {
+      const diff = Math.abs(hd - dur);
+      if (diff <= 2) score += 20;
+      else if (diff <= 6) score += 8;
+      else if (diff > 25) score -= 15;
+    }
+
+    // instrumental tidak berguna kalau user mau lirik
+    if (h.instrumental) score -= 5;
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = h;
+    }
+  }
+
+  return bestScore >= 45 ? best : null;
+}
+
+async function lrclibFetch(path, params) {
+  const qs = new URLSearchParams(params).toString();
+  const res = await fetch(`${LRCLIB_API}${path}${qs ? '?' + qs : ''}`, {
+    headers: { Accept: 'application/json', 'User-Agent': LRCLIB_USER_AGENT }
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
 async function getLRCLyrics({ title, artist, duration = 0, album = '' }) {
   try {
     if (!title || !artist) return null;
 
-    const params = new URLSearchParams({
+    const params = {
       track_name: String(title).trim(),
       artist_name: String(artist).trim()
-    });
+    };
+    if (album) params.album_name = String(album).trim();
 
-    if (album) params.set('album_name', String(album).trim());
-
-    const durationNumber = Number(duration);
-    if (Number.isFinite(durationNumber) && durationNumber >= 1 && durationNumber <= 3600) {
-      params.set('duration', String(Math.round(durationNumber)));
+    const dur = Number(duration);
+    if (Number.isFinite(dur) && dur >= 1 && dur <= 3600) {
+      params.duration = String(Math.round(dur));
     }
 
-    const res = await fetch(`${LRCLIB_API}/get?${params.toString()}`, {
-      headers: {
-        Accept: 'application/json',
-        'User-Agent': LRCLIB_USER_AGENT
+    // 1) exact match dulu (paling akurat)
+    let data = await lrclibFetch('/get', params);
+
+    // 2) LRCLIB tidak punya entry persis -> cari lewat /search
+    if (!data) {
+      const q = normalizeForSearch(`${title} ${artist}`);
+      if (q) {
+        const hits = await lrclibFetch('/search', { q });
+        const best = pickBestLyricHit(hits, { title, artist, duration });
+        if (best) {
+          // kalau namanya beda, ambil ulang by id supaya syncedLyrics ikut
+          if (best.id) {
+            data = (await lrclibFetch('/get/' + encodeURIComponent(best.id), {})) || best;
+          } else {
+            data = best;
+          }
+        }
       }
-    });
+    }
 
-    if (res.status === 404 || res.status === 429 || !res.ok) return null;
-
-    const data = await res.json();
     if (!data) return null;
 
     return {
