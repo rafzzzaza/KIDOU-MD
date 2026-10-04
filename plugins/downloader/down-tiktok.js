@@ -1,4 +1,4 @@
-import fetch from 'node-fetch'
+import { tiktokDownload, tiktokSearch } from '../../lib/tiktok.js'
 
 let handler = async (m, { text, usedPrefix, command, conn }) => {
   try {
@@ -18,380 +18,72 @@ let handler = async (m, { text, usedPrefix, command, conn }) => {
       /(https:\/\/(vt|vm)\.tiktok\.com\/[^\s]+|https:\/\/www\.tiktok\.com\/@[\w.-]+\/video\/\d+)/
 
     let url = input.match(regex)?.[0]
-
     let data
 
-    // jika link langsung
     if (url) {
-
-      let result = await getTikTok(url)
-
-      if (!result) {
-        return m.reply('❌ Semua API TikTok gagal.')
+      data = await tiktokDownload(url)
+    } else {
+      let video = await tiktokSearch(input)
+      if (video) {
+        let videoUrl = video.tiktokUrl || `https://www.tiktok.com/@${video.author?.unique_id}/video/${video.video_id}`
+        data = await tiktokDownload(videoUrl)
       }
-
-      data = result
-
-    } 
-    
-    // jika search
-    else {
-
-      let search = await (
-        await fetch(
-          `https://www.tikwm.com/api/feed/search?keywords=${encodeURIComponent(input)}&count=1&cursor=0&web=1&hd=1`
-        )
-      ).json()
-
-
-      let video = search?.data?.videos?.[0]
-
-
-      if (!video) {
-        return m.reply(
-          `❌ Hasil tidak ditemukan untuk "${input}"`
-        )
-      }
-
-
-      let result = await getTikTok(
-        `https://www.tiktok.com/@${video.author.unique_id}/video/${video.video_id}`
-      )
-
-
-      if (!result) {
-        return m.reply('❌ Gagal mengambil hasil search.')
-      }
-
-
-      data = result
     }
 
+    if (!data) {
+      return m.reply('❌ Gagal mengambil data TikTok.')
+    }
 
-
-    /*
-    ============================
-        TIKTOK PHOTO
-    ============================
-    */
-
-    let images =
-      data.images ||
-      data.image ||
-      data.photo ||
-      data.images_url
-
-
-    if (images && images.length) {
-
-
-      for (let i = 0; i < images.length; i++) {
-
-
+    // TIKTOK PHOTO
+    if (data.images && data.images.length) {
+      for (let i = 0; i < data.images.length; i++) {
         await conn.sendFile(
           m.chat,
-          images[i],
+          data.images[i],
           '',
           i === 0
-            ?
-`🖼️ *TIKTOK PHOTO*
-
-> Judul : ${data.title || '-'}
-> Uploader : ${getAuthor(data)}
-> Total Foto : ${images.length}
-> Views : ${formatNumber(data.play_count)}`
-            :
-            '',
+            ? `🖼️ *TIKTOK PHOTO*\n\n> Judul : ${data.title || '-'}\n> Uploader : ${data.author?.nickname || '-'}\n> Total Foto : ${data.images.length}`
+            : '',
           m
         )
-
-
-        await delay(3000)
-
+        await new Promise(res => setTimeout(res, 1000))
       }
-
-
       return
     }
 
-
-
-    /*
-    ============================
-        TIKTOK VIDEO
-    ============================
-    */
-
-
-    let videoUrl =
-      data.play ||
-      data.video ||
-      data.no_watermark ||
-      data.play_url ||
-      data.video_url
-
-
-
-    if (videoUrl) {
-
-
+    // TIKTOK VIDEO
+    if (data.play) {
       await conn.sendFile(
         m.chat,
-        videoUrl,
+        data.play,
         'tiktok.mp4',
-`
-🎬 *TIKTOK VIDEO*
-
-> Judul : ${data.title || '-'}
-> Uploader : ${getAuthor(data)}
-> Durasi : ${formatDuration(data.duration)}
-> Views : ${formatNumber(data.play_count)}
-`,
+        `🎬 *TIKTOK VIDEO*\n\n> Judul : ${data.title || '-'}\n> Uploader : ${data.author?.nickname || '-'}\n> Durasi : ${data.duration || 0}s`,
         m
       )
-
-
     }
 
-
-
-    /*
-    ============================
-          AUDIO
-    ============================
-    */
-
-
-    let audio =
-      data.music_info?.play ||
-      data.music ||
-      data.audio ||
-      data.music_url
-
-
-
-    if (audio) {
-
-
+    // AUDIO
+    if (data.music) {
       await conn.sendMessage(
         m.chat,
         {
-          audio: {
-            url: audio
-          },
+          audio: { url: data.music },
           mimetype: 'audio/mpeg',
-          fileName:
-            `${data.title || 'tiktok'}.mp3`
+          fileName: `${data.title || 'tiktok'}.mp3`
         },
-        {
-          quoted: m
-        }
+        { quoted: m }
       )
-
-
     }
 
-
-
   } catch (e) {
-
     console.error(e)
-
-    m.reply(
-      '❌ Terjadi kesalahan saat download TikTok.'
-    )
-
+    m.reply('❌ Terjadi kesalahan saat download TikTok.')
   }
 }
 
-
-
-
-handler.help = [
-  'tt',
-  'ttdl',
-  'tiktok'
-]
-
-handler.tags = [
-  'downloader'
-]
-
-handler.command =
-/^(tt|ttdl|tiktok)$/i
-
+handler.help = ['tt', 'ttdl', 'tiktok']
+handler.tags = ['downloader']
+handler.command = /^(tt|ttdl|tiktok)$/i
 handler.limit = true
 
-
 export default handler
-
-
-
-
-// ===============================
-// GET TIKTOK WITH FALLBACK
-// ===============================
-
-async function getTikTok(url) {
-
-
-  // PRIMARY : TIKWM
-
-  try {
-
-
-    let res = await (
-      await fetch(
-        `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`
-      )
-    ).json()
-
-
-
-    if (res?.data) {
-
-
-      return res.data
-
-    }
-
-
-  } catch {}
-
-
-
-
-  // FALLBACK : SIPUTZX
-
-
-  try {
-
-
-    let res = await (
-      await fetch(
-        `https://api.siputzx.my.id/api/d/tiktok?url=${encodeURIComponent(url)}`
-      )
-    ).json()
-
-
-
-    if (res?.data) {
-
-
-      let d = res.data
-
-
-      return {
-
-        title:
-          d.title ||
-          d.desc,
-
-
-        play_count:
-          d.stats?.playCount ||
-          d.play_count ||
-          0,
-
-
-        author:
-          d.author,
-
-
-        duration:
-          d.duration,
-
-
-        play:
-          d.video ||
-          d.no_watermark ||
-          d.play,
-
-
-        music:
-          d.music ||
-          d.audio,
-
-
-        images:
-          d.images ||
-          d.photo ||
-          d.images_url
-
-      }
-
-
-    }
-
-
-
-  } catch {}
-
-
-
-  return null
-
-}
-
-
-
-
-
-function getAuthor(data) {
-
-  return (
-    data.author?.nickname ||
-    data.author?.unique_id ||
-    data.author ||
-    '-'
-  )
-
-}
-
-
-
-
-
-function formatNumber(num = 0) {
-
-  return Number(num)
-    .toLocaleString()
-
-}
-
-
-
-
-
-function formatDuration(sec = 0) {
-
-
-  sec = Number(sec)
-
-
-  const m =
-    Math.floor(sec / 60)
-      .toString()
-      .padStart(2, '0')
-
-
-  const s =
-    Math.floor(sec % 60)
-      .toString()
-      .padStart(2, '0')
-
-
-  return `${m}:${s}`
-
-}
-
-
-
-
-
-const delay =
-ms =>
-new Promise(
-  resolve =>
-  setTimeout(resolve, ms)
-)

@@ -69,5 +69,16 @@ handler.tags = ['maker']
 handler.command = /^fakeml$/i
 handler.limit = true
 handler.register = true
+/* ============================================================
+ * DISABLED - endpoint mati
+ * Alasan: api.apocalypse.web.id -> NXDOMAIN, domain tidak ada
+ * sama sekali (DNS "does not exist"). Tidak bisa dipulihkan tanpa
+ * domain baru.
+ * Catatan: upload avatar ke uguu.se di plugin ini MASIH hidup,
+ * tapi tanpa API canvas tidak ada fitur yang bisa jalan.
+ * Diperbaiki 2026-10-04. Hapus baris ini setelah endpoint
+ * diganti dengan API yang hidup.
+ * ============================================================ */
+handler.disabled = true
 
 export default handler

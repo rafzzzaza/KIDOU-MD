@@ -34,5 +34,14 @@ let handler = async (m, { conn, text }) => {
 handler.help = ["fakepilih <teks1,teks2>"]
 handler.tags = ["fun"]
 handler.command = /^fakepilih$/i
+/* ============================================================
+ * DISABLED - endpoint mati
+ * Alasan: api.synoxcloud.biz.id/canvas/drakehotline -> hanya
+ * mengembalikan HTML landing page Vercel, bukan JSON API (3/3 percobaan).
+ * Path API sudah tidak ada; yang tersisa cuma frontend SPA-nya.
+ * Diperbaiki 2026-10-04. Hapus baris ini setelah endpoint
+ * diganti dengan API yang hidup.
+ * ============================================================ */
+handler.disabled = true
 
 export default handler

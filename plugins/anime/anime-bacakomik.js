@@ -407,5 +407,14 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 handler.help = ['bacakomik', 'komik'];
 handler.tags = ['anime'];
 handler.command = /^(bacakomik|komik|komiksearch|komikpopuler)$/i;
+/* ============================================================
+ * DISABLED - endpoint mati
+ * Alasan: bacakomik.my -> HTTP 522 (Cloudflare Connection timed out)
+ * selama ~19.5 detik di 3/3 percobaan. Origin server-nya tidak merespons,
+ * jadi scraping HTML di plugin ini tidak mungkin berhasil.
+ * Diperbaiki 2026-10-04. Hapus baris ini setelah endpoint
+ * diganti dengan API yang hidup.
+ * ============================================================ */
+handler.disabled = true;
 
 export default handler;

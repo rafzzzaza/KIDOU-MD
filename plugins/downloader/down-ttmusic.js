@@ -1,10 +1,8 @@
+import { tiktokDownload, tiktokSearch } from '../../lib/tiktok.js'
+
 let handler = async (m, { text, usedPrefix, command, conn }) => {
   try {
-    await m.react('🎵')
-
-    const rawInput = m.quoted?.text || text || ''
-    const input = cleanInput(rawInput)
-
+    const input = m.quoted ? m.quoted.text : text
     if (!input) {
       return m.reply(
         `Contoh:\n` +
@@ -14,109 +12,42 @@ let handler = async (m, { text, usedPrefix, command, conn }) => {
     }
 
     const regex = /https?:\/\/(?:www\.|vt\.|vm\.|m\.)?tiktok\.com\/[^\s]+/i
-    const url = input.match(regex)?.[0]
+    let url = input.match(regex)?.[0]
     let data
 
     if (url) {
-      const json = await getJson(
-        `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`
-      )
-
-      if (!json?.data) return m.reply('❌ Gagal mengambil data TikTok.')
-      data = json.data
+      data = await tiktokDownload(url)
     } else {
-      const search = await getJson(
-        `https://www.tikwm.com/api/feed/search?keywords=${encodeURIComponent(input)}&count=1&cursor=0&web=1`
-      )
-
-      const video = search?.data?.videos?.[0]
-      if (!video) return m.reply(`❌ Hasil tidak ditemukan untuk "${input}"`)
-
-      const json = await getJson(
-        `https://www.tikwm.com/api/?url=${encodeURIComponent(`https://www.tiktok.com/@${video.author.unique_id}/video/${video.video_id}`)}&hd=1`
-      )
-
-      if (!json?.data) return m.reply('❌ Gagal mengambil data hasil pencarian.')
-      data = json.data
+      let video = await tiktokSearch(input)
+      if (video) {
+        let videoUrl = video.tiktokUrl || `https://www.tiktok.com/@${video.author?.unique_id}/video/${video.video_id}`
+        data = await tiktokDownload(videoUrl)
+      }
     }
 
-    const audioUrl =
-      data.music_info?.play ||
-      data.music ||
-      data.music_info?.audio
-
-    if (!audioUrl) throw new Error('❌ Audio TikTok tidak ditemukan.')
-
-    const audioBuffer = await getBuffer(audioUrl)
-
-    if (!audioBuffer?.length) {
-      throw new Error('❌ Buffer audio kosong.')
+    if (!data?.music) {
+      return m.reply('❌ Audio tidak ditemukan.')
     }
 
     await conn.sendMessage(
       m.chat,
       {
-        audio: audioBuffer,
+        audio: { url: data.music },
         mimetype: 'audio/mpeg',
-        fileName: `${cleanFileName(data.title || 'tiktok')}.mp3`,
+        fileName: `${data.title || 'tiktok'}.mp3`,
         ptt: false
       },
       { quoted: m }
     )
-
-    await m.react('✅')
   } catch (e) {
-    await m.react('❌')
-    m.reply(typeof e === 'string' ? e : `❌ Error: ${e.message || 'Terjadi kesalahan saat mengambil audio TikTok.'}`)
+    console.error(e)
+    m.reply('❌ Gagal memproses audio TikTok.')
   }
 }
 
-handler.help = ['ttmp3']
+handler.help = ['ttmp3', 'tiktokmp3']
 handler.tags = ['downloader']
 handler.command = /^(ttmp3|tiktokmp3)$/i
 handler.limit = true
 
 export default handler
-
-async function getJson(url) {
-  const res = await fetch(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept': 'application/json,text/plain,*/*',
-      'Referer': 'https://www.tikwm.com/'
-    },
-    signal: AbortSignal.timeout(15000) // 15s timeout
-  })
-
-  if (!res.ok) throw new Error(`Request gagal: ${res.status} ${res.statusText}`)
-  return await res.json()
-}
-
-async function getBuffer(url) {
-  const res = await fetch(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept': '*/*',
-      'Referer': 'https://www.tikwm.com/'
-    },
-    signal: AbortSignal.timeout(20000) // 20s timeout untuk download audio
-  })
-
-  if (!res.ok) throw new Error(`Audio gagal: ${res.status} ${res.statusText}`)
-  return Buffer.from(await res.arrayBuffer())
-}
-
-function cleanInput(str = '') {
-  return String(str)
-    .replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function cleanFileName(name = 'tiktok') {
-  return String(name)
-    .replace(/[\\/:*?"<>|]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 50) || 'tiktok'
-}

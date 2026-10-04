@@ -24,7 +24,10 @@ let handler = async (m, { conn }) => {
       'buat gambar ini menjadi panel manga, buat beberapa panel dan ubah karakternya menjadi anime tanpa bubble text'
     )
 
-    let res = await fetch('https://api.nexray.web.id/ai/nanobanana', {
+    // PENTING: pakai .eu.cc langsung. api.nexray.web.id membalas 301 ke
+    // .eu.cc, dan node-fetch saat redirect 301/302 menurunkan POST -> GET
+    // sehingga body multipart (gambar + param) ikut hilang.
+    let res = await fetch('https://api.nexray.eu.cc/ai/nanobanana', {
       method: 'POST',
       body: form,
       headers: form.getHeaders()

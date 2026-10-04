@@ -6,6 +6,7 @@ import path from 'path';
 import { unwatchFile, watchFile } from 'fs';
 import chalk from 'chalk';
 import { createWelcomeCard } from './lib/welcome.js'
+import databaseInit from './lib/database.js'
 
 const isNumber = (x) => typeof x === 'number' && !isNaN(x);
 const cleanJid = jid => {
@@ -179,7 +180,10 @@ m.exp = 0;
 m.limit = false;
 
 		if (m.sender.endsWith('@broadcast') || m.sender.endsWith('@newsletter')) return;
-		await (await import(`./lib/database.js?v=${Date.now()}`)).default(m, this);
+		// Import statis, bukan `?v=${Date.now()}`. Query string membuat specifier
+		// baru tiap pesan, sehingga Node menyimpan satu module namespace per pesan
+		// di module map tanpa pernah dievict -> RAM naik terus selama bot hidup.
+		databaseInit(m, this);
 
 		if (typeof m.text !== 'string') m.text = '';
 

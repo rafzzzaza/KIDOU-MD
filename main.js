@@ -647,34 +647,21 @@ global.resetInterval = setInterval(async () => {
     if (!global.db?.data?.users) return;
 
     let now = new Date();
-    let today = now.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta' });
-    let jam = now.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false });
+    if (now.getHours() !== 0 || now.getMinutes() !== 0) return;
 
-    if (jam !== '00.00' && jam !== '00:00') return;
+    let today = now.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta' });
     if (global.db.data.lastReset === today) return;
 
     global.db.data.lastReset = today;
-    let jumlah = 50;
+    let limitDefault = 50;
     let users = global.db.data.users;
-    let total = 0;
 
     for (let jid in users) {
         let user = users[jid];
-        if (!user) continue;
-        if (user.premium || user.premiumTime > 0) continue;
-
-        if (!Number.isFinite(user.limit) || user.limit < jumlah) {
-            user.limit = jumlah;
-        }
-        total++;
+        if (!user || user.premium || user.premiumTime > 0) continue;
+        user.limit = limitDefault;
     }
-
-    try {
-        await global.db.write().catch(console.error);
-        console.log(`[AUTO RESET LIMIT]\nReset : ${total}\nLimit : ${jumlah}`);
-    } catch (e) {
-        console.error('[AUTO RESET ERROR]', e);
-    }
+    console.log(`[AUTO RESET] Limit user direset ke ${limitDefault}`);
 }, 60000);
 
 /* ============================================================

@@ -1,56 +1,129 @@
 import fs from 'fs'
+import path from 'path'
 
 
 
-const dbPath = './lib/chat.json'
+const dbPath = path.join(process.cwd(), 'lib', 'chat.json')
+const tmpPath = dbPath + '.tmp'
+const FLUSH_INTERVAL = 5000
 
 
 
-/* ================= INIT DB ================= */
+/* ================= LOAD (sekali, async) ================= */
 
-const ensureDB = () => {
+// Counter disimpan di memori. Versi lama membaca + parse ulang seluruh
+// file (ratusan KB) dan menulis ulang seluruh file untuk SETIAP pesan grup,
+// sehingga biaya per pesan tumbuh seiring jumlah chat/user.
+let db = null
+let loadError = false
+let loading = null
 
-    if (!fs.existsSync('./lib')) {
+const loadDB = async () => {
 
-        fs.mkdirSync('./lib', { recursive: true })
+    if (db) return db
+
+    if (!loading) {
+
+        loading = (async () => {
+
+            try {
+
+                await fs.promises.mkdir(path.dirname(dbPath), { recursive: true })
+
+                if (!fs.existsSync(dbPath)) {
+
+                    await fs.promises.writeFile(dbPath, JSON.stringify({}))
+
+                }
+
+                const parsed = JSON.parse(await fs.promises.readFile(dbPath, 'utf-8'))
+                db = (parsed && typeof parsed === 'object') ? parsed : {}
+
+            } catch (e) {
+
+                // JANGAN kembali ke {} lalu menimpanya: file yang gagal parse
+                // masih bisa diamankan, dan menimpanya akan menghapus SEMUA
+                // counter secara permanen. Kita lanjut di memori, dan file
+                // asli disalin ke cadangan sebelum ditulis ulang.
+                loadError = true
+                db = {}
+                console.error(`[totalchat-listener] gagal baca ${dbPath}:`, e.message)
+
+            }
+
+            return db
+
+        })()
 
     }
 
-    if (!fs.existsSync(dbPath)) {
-
-        fs.writeFileSync(dbPath, JSON.stringify({}))
-
-    }
+    return loading
 
 }
 
 
 
-/* ================= LOAD ================= */
+/* ================= SAVE (atomic + serial) ================= */
 
-const loadDB = () => {
+let flushTimer = null
+let writing = null
 
-    try {
+const writeNow = async () => {
 
-        ensureDB()
+    // Serialisasi: hanya satu penulisan berjalan, penumpukan berikutnya
+    // menunggu. Tanpa ini, dua pesan berdekatan bisa saling menimpa
+    // hasil read-modify-write dan counter hilang.
+    if (writing) return writing
 
-        return JSON.parse(fs.readFileSync(dbPath))
+    writing = (async () => {
 
-    } catch {
+        try {
 
-        return {}
+            await fs.promises.mkdir(path.dirname(dbPath), { recursive: true })
 
-    }
+            if (loadError && fs.existsSync(dbPath)) {
+
+                const backup = `${dbPath}.corrupt-${Date.now()}`
+                await fs.promises.rename(dbPath, backup)
+                console.error(`[totalchat-listener] file lama dibackup ke ${backup}`)
+
+            }
+
+            // Tulis ke file sementara lalu rename, supaya bot yang mati di
+            // tengah write tidak meninggalkan JSON setengah jadi.
+            await fs.promises.writeFile(tmpPath, JSON.stringify(db, null, 2))
+            await fs.promises.rename(tmpPath, dbPath)
+            loadError = false
+
+        } catch (e) {
+
+            console.error('[totalchat-listener] gagal simpan:', e.message)
+
+        } finally {
+
+            writing = null
+
+        }
+
+    })()
+
+    return writing
 
 }
 
+const scheduleFlush = () => {
 
+    if (flushTimer) return
 
-/* ================= SAVE ================= */
+    flushTimer = setTimeout(() => {
 
-const saveDB = (data) => {
+        flushTimer = null
+        writeNow()
 
-    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2))
+    }, FLUSH_INTERVAL)
+
+    // Tidak perlu menahan event loop hanya untuk menyimpan counter.
+    flushTimer.unref?.()
 
 }
 
@@ -66,22 +139,14 @@ export async function before(m) {
 
     if (m.key.fromMe) return
 
+    const data = await loadDB()
 
+    if (!data[m.chat]) data[m.chat] = {}
 
-    let db = loadDB()
+    if (!data[m.chat][m.sender]) data[m.chat][m.sender] = 0
 
+    data[m.chat][m.sender] += 1
 
-
-    if (!db[m.chat]) db[m.chat] = {}
-
-    if (!db[m.chat][m.sender]) db[m.chat][m.sender] = 0
-
-
-
-    db[m.chat][m.sender] += 1
-
-
-
-    saveDB(db)
+    scheduleFlush()
 
 }

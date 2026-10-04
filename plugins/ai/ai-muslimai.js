@@ -16,5 +16,14 @@ let oota = async (m, {
 
 oota.help = oota.command = ["muslim-ai"]
 oota.tags = ["ai"];
+/* ============================================================
+ * DISABLED - endpoint mati
+ * Alasan: api.ootaizumi.web.id/ai/muslim-ai -> HTTP 404
+ * "The deployment could not be found on Vercel." (3/3 percobaan)
+ * Host resolve, tapi deployment Vercel-nya sudah dihapus.
+ * Diperbaiki 2026-10-04. Hapus baris ini setelah endpoint
+ * diganti dengan API yang hidup.
+ * ============================================================ */
+oota.disabled = true
 
 export default oota

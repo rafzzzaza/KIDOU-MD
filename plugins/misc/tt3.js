@@ -1,7 +1,7 @@
+import { tiktokDownload, tiktokSearch } from '../../lib/tiktok.js'
+
 let handler = async (m, { text, usedPrefix, command, conn }) => {
   try {
-    await m.react('✨')
-
     const input = m.quoted ? m.quoted.text : text
     if (!input) {
       return m.reply(
@@ -16,75 +16,56 @@ let handler = async (m, { text, usedPrefix, command, conn }) => {
     let data
 
     if (url) {
-      let res = await (await fetch(`https://www.tikwm.com/api/?url=${url}&hd=1`)).json()
-      if (!res?.data) return m.reply('❌ Gagal mengambil data TikTok.')
-      data = res.data
+      data = await tiktokDownload(url)
     } else {
-      let search = await (
-        await fetch(
-          `https://www.tikwm.com/api/feed/search?keywords=${encodeURIComponent(input)}&count=1&cursor=0&web=1&hd=1`
-        )
-      ).json()
-
-      let video = search?.data?.videos?.[0]
-      if (!video) return m.reply(`❌ Hasil tidak ditemukan untuk "${input}"`)
-
-      let res = await (
-        await fetch(
-          `https://www.tikwm.com/api/?url=https://www.tiktok.com/@${video.author.unique_id}/video/${video.video_id}&hd=1`
-        )
-      ).json()
-
-      if (!res?.data) return m.reply('❌ Gagal mengambil data hasil search.')
-      data = res.data
+      let video = await tiktokSearch(input)
+      if (video) {
+        let videoUrl = video.tiktokUrl || `https://www.tiktok.com/@${video.author?.unique_id}/video/${video.video_id}`
+        data = await tiktokDownload(videoUrl)
+      }
     }
 
-    const isPhoto = data.images && data.images.length > 0
+    if (!data) {
+      return m.reply('❌ Gagal mengambil data TikTok.')
+    }
 
-    if (isPhoto) {
+    // PHOTO
+    if (data.images && data.images.length) {
       for (let i = 0; i < data.images.length; i++) {
         await conn.sendFile(
           m.chat,
           data.images[i],
           '',
-          i === 0
-            ? `🎌 *TIKTOK PHOTO*
-
-> *Judul*: ${data.title || '-'}
-> *Uploader*: ${data.author.nickname || data.author.unique_id}
-> *Total Foto*: ${data.images.length}
-> *Views*: ${formatNumber(data.play_count)}`
-            : '',
+          i === 0 ? `🖼️ *TIKTOK PHOTO*\n\n> Judul : ${data.title || '-'}\n> Uploader : ${data.author?.nickname || '-'}` : '',
           m
         )
-
-        await delay(3000)
+        await new Promise(res => setTimeout(res, 1000))
       }
-    } else {
+      return
+    }
+
+    // VIDEO
+    if (data.play) {
       await conn.sendFile(
         m.chat,
         data.play,
-        '',
-        `🎌 *TIKTOK VIDEO*
-
-> *Judul*: ${data.title || '-'}
-> *Uploader*: ${data.author.nickname || data.author.unique_id}
-> *Durasi*: ${formatDuration(data.duration)}
-> *Views*: ${formatNumber(data.play_count)}`,
+        'tiktok.mp4',
+        `🎬 *TIKTOK VIDEO*\n\n> Judul : ${data.title || '-'}\n> Uploader : ${data.author?.nickname || '-'}\n> Durasi : ${data.duration || 0}s`,
         m
       )
+    }
 
-      if (data.music_info?.play) {
-        await conn.sendMessage(
-          m.chat,
-          {
-            audio: { url: data.music_info.play },
-            mimetype: 'audio/mpeg',
-            fileName: `${data.title || 'tiktok'}.mp3`
-          },
-          { quoted: m }
-        )
-      }
+    // AUDIO
+    if (data.music) {
+      await conn.sendMessage(
+        m.chat,
+        {
+          audio: { url: data.music },
+          mimetype: 'audio/mpeg',
+          fileName: `${data.title || 'tiktok'}.mp3`
+        },
+        { quoted: m }
+      )
     }
 
   } catch (e) {
@@ -99,15 +80,3 @@ handler.command = /^(tt3|ttdl2|tiktok3)$/i
 handler.limit = true
 
 export default handler
-
-function formatNumber(num = 0) {
-  return num.toLocaleString()
-}
-
-function formatDuration(sec = 0) {
-  const m = Math.floor(sec / 60).toString().padStart(2, '0')
-  const s = Math.floor(sec % 60).toString().padStart(2, '0')
-  return `${m}:${s}`
-}
-
-const delay = ms => new Promise(res => setTimeout(res, ms))
