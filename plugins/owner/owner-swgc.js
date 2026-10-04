@@ -1,7 +1,7 @@
 import * as baileys from '@rexxhayanasi/elaina-baileys'
 import crypto from 'node:crypto'
 import { PassThrough } from 'stream'
-import ffmpeg from 'fluent-ffmpeg'
+import ffmpeg from '../../lib/ffmpeg-path.js'
 
 // Fungsi jeda untuk mencegah spam request (rate-limit)
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))

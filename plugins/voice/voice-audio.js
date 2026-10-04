@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { spawn } from 'child_process'
+import { ffmpegPath } from '../../lib/ffmpeg-path.js'
 
 const effects = {
   // 🎵 BASIC
@@ -97,7 +98,7 @@ function runFFmpeg(input, output, filter) {
       output
     ]
 
-    const ffmpeg = spawn('ffmpeg', args, {
+    const ffmpeg = spawn(ffmpegPath, args, {
       stdio: ['ignore', 'ignore', 'pipe']
     })
 

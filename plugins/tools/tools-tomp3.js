@@ -1,4 +1,5 @@
 import { spawn } from 'child_process'
+import { ffmpegPath } from '../../lib/ffmpeg-path.js'
 import fs from 'fs'
 import path from 'path'
 import { tmpdir } from 'os'
@@ -22,7 +23,7 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     fs.writeFileSync(inputPath, buffer)
 
     await new Promise((resolve, reject) => {
-      const ffmpeg = spawn('ffmpeg', ['-i', inputPath, '-vn', '-ab', '128k', '-ar', '44100', '-y', outputPath])
+      const ffmpeg = spawn(ffmpegPath, ['-i', inputPath, '-vn', '-ab', '128k', '-ar', '44100', '-y', outputPath])
       ffmpeg.on('close', (code) => {
         if (code === 0) resolve()
         else reject(new Error(`ffmpeg gagal dengan kode ${code}`))

@@ -2,6 +2,7 @@
 import fs from 'fs'
 import path from 'path'
 import { exec } from 'child_process'
+import { ffmpegShell } from '../../lib/ffmpeg-path.js'
 import { promisify } from 'util'
 
 const execPromise = promisify(exec)
@@ -195,7 +196,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
         // CONVERT MP3 -> OPUS
         // ====================================================
         await execPromise(
-            `ffmpeg -y -i "${inputPath}" -vn -c:a libopus -ac 1 -ar 48000 -b:a 32k -application voip -map_metadata -1 "${outputPath}"`
+            `${ffmpegShell()} -y -i "${inputPath}" -vn -c:a libopus -ac 1 -ar 48000 -b:a 32k -application voip -map_metadata -1 "${outputPath}"`
         )
 
         // ====================================================

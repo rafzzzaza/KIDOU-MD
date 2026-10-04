@@ -33,7 +33,7 @@ async function toPTT(filePath) {
   await fsPromises.writeFile(input, buffer)
 
   await exec(
-    `ffmpeg -y -i "${input}" -vn -c:a libopus -b:a 128k "${output}"`
+    `${ffmpegShell()} -y -i "${input}" -vn -c:a libopus -b:a 128k "${output}"`
   )
 
   const result = await fsPromises.readFile(output)

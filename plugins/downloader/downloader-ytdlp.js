@@ -1,4 +1,5 @@
 import { exec } from 'child_process';
+import { ffmpegShell } from '../../lib/ffmpeg-path.js';
 import { promisify } from 'util';
 import { unlinkSync, existsSync, statSync, mkdirSync } from 'fs';
 import path from 'path';
@@ -35,7 +36,7 @@ const convertToMp4WithFfmpeg = async (inputPath, outputPath) => {
   try {
     console.log(`Converting ${inputPath} to ${outputPath} using FFmpeg...`);
     
-    const convertCommand = `ffmpeg -i "${inputPath}" -c:v libx264 -c:a aac -movflags +faststart -y "${outputPath}"`;
+    const convertCommand = `${ffmpegShell()} -i "${inputPath}" -c:v libx264 -c:a aac -movflags +faststart -y "${outputPath}"`;
     
     await execAsync(convertCommand, { timeout: 600000 });
     

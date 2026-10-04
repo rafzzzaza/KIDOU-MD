@@ -3,6 +3,7 @@ import { promises as fs } from 'fs'
 import { tmpdir } from 'os'
 import path from 'path'
 import { exec as _exec } from 'child_process'
+import { ffmpegShell } from '../../lib/ffmpeg-path.js'
 import { promisify } from 'util'
 
 const exec = promisify(_exec)
@@ -29,7 +30,7 @@ async function toPTT(url) {
   await fs.writeFile(input, buffer)
 
   await exec(
-    `ffmpeg -y -i "${input}" -vn -c:a libopus -b:a 128k "${output}"`
+    `${ffmpegShell()} -y -i "${input}" -vn -c:a libopus -b:a 128k "${output}"`
   )
 
   const result = await fs.readFile(output)

@@ -4,11 +4,11 @@ import FormData from 'form-data'
 import fs from 'node:fs'
 import path from 'node:path'
 
-const SIGN_API = 'https://cloudinary-tools.netlify.app/.netlify/functions/sign-upload-params'
-const UPLOAD_API = 'https://api.cloudinary.com/v1_1/dtz0urit6/auto/upload'
+const SIGN_API = process.env.CLOUDINARY_SIGN_API || 'https://cloudinary-tools.netlify.app/.netlify/functions/sign-upload-params'
+const UPLOAD_API = process.env.CLOUDINARY_UPLOAD_API || 'https://api.cloudinary.com/v1_1/dtz0urit6/auto/upload'
 
-const API_KEY = '985946268373735'
-const UPLOAD_PRESET = 'cloudinary-tools'
+const API_KEY = process.env.CLOUDINARY_API_KEY || ''
+const UPLOAD_PRESET = process.env.CLOUDINARY_UPLOAD_PRESET || ''
 const SOURCE = 'ml'
 
 const UA = 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Mobile Safari/537.36'
@@ -102,6 +102,14 @@ function makeUpscaleUrl(url) {
 }
 
 let handler = async (m, { conn, usedPrefix, command }) => {
+  if (!API_KEY || !UPLOAD_PRESET || !UPLOAD_API) {
+    return m.reply(
+      `❌ *Upscaler belum dikonfigurasi.*\n\n` +
+      `Isi credential Cloudinary di \`.env\`:\n` +
+      `\`CLOUDINARY_API_KEY\`\n\`CLOUDINARY_UPLOAD_PRESET\`\n\`CLOUDINARY_UPLOAD_API\``
+    )
+  }
+
   let q = m.quoted ? m.quoted : m
   let mime = (q.msg || q).mimetype || ''
 

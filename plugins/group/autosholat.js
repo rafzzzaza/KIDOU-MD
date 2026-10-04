@@ -1,5 +1,6 @@
 ﻿import fetch from 'node-fetch'
 import { spawn } from 'child_process'
+import { ffmpegPath } from '../../lib/ffmpeg-path.js'
 import sharp from 'sharp'
 import { prepareWAMessageMedia } from '@rexxhayanasi/elaina-baileys'
 
@@ -130,7 +131,7 @@ async function convertBufferToOpus(input) {
     let stderr = ''
     let settled = false
 
-    const ffmpeg = spawn('ffmpeg', [
+    const ffmpeg = spawn(ffmpegPath, [
       '-hide_banner',
       '-loglevel', 'error',
       '-i', 'pipe:0',

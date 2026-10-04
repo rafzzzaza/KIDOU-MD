@@ -9,6 +9,7 @@ import path from 'node:path'
 import os from 'node:os'
 import crypto from 'node:crypto'
 import { spawn } from 'node:child_process'
+import { ffmpegPath } from '../../lib/ffmpeg-path.js'
 
 const TMP_DIR = path.join(os.tmpdir(), 'Bot-waveform')
 
@@ -25,7 +26,7 @@ function randomName(ext = '') {
 
 function runFFmpeg(args) {
     return new Promise((resolve, reject) => {
-        const proc = spawn('ffmpeg', args, {
+        const proc = spawn(ffmpegPath, args, {
             stdio: ['ignore', 'pipe', 'pipe']
         })
 
@@ -81,7 +82,7 @@ async function getPCM(input) {
  */
 function getPCMBuffer(input) {
     return new Promise((resolve, reject) => {
-        const proc = spawn('ffmpeg', [
+        const proc = spawn(ffmpegPath, [
             '-hide_banner',
             '-loglevel', 'error',
             '-i', input,

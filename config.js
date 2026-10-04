@@ -37,8 +37,8 @@ global.links = {
         jid: '120363432093486679@newsletter',
         name: global.namebot
     },
-    officialGroup: 'https://chat.whatsapp.com/xxx',
-    backupGroup: '1234567890@g.us'
+    officialGroup: process.env.OFFICIAL_GROUP || '',
+    backupGroup: process.env.BACKUP_GROUP || ''
 };
 
 // =========================
@@ -51,8 +51,8 @@ global.images = {
         height: 369 
     },
     ratio_1_1: {
-        url: 'https://raw.githubusercontent.com/rafzzzaza/gambar/refs/heads/main/Bot_FAMILY.png',
-        url_fallback: 'https://raw.githubusercontent.com/rafzzzaza/gambar/refs/heads/main/Bot_FAMILY.png'
+        url: 'https://raw.githubusercontent.com/rafzzzaza/gambar/refs/heads/main/ASANAGI_FAMILY.png',
+        url_fallback: 'https://raw.githubusercontent.com/rafzzzaza/gambar/refs/heads/main/anya.jpg'
     }
 };
 
@@ -156,9 +156,9 @@ global.multiplier = 38;
 // PANEL CONFIG
 // =========================
 global.panel = {
-  domain: "https://bokepytta.com",
-  ptla: "ptla_xxxxxxxxx",
-  ptlc: "ptlc_xxxxxxxxx",
+  domain: process.env.PANEL_DOMAIN || '',
+  ptla: process.env.PANEL_PTLA || '',
+  ptlc: process.env.PANEL_PTLC || '',
   egg: 15,
   loc: 1
 };

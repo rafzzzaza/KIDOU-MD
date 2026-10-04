@@ -11,6 +11,7 @@
  */
 
 import { spawn } from 'node:child_process'
+import { ffmpegPath } from '../../lib/ffmpeg-path.js'
 import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
@@ -234,7 +235,7 @@ async function transcodeToH264(srcPath, tmpDir) {
   const ok = await new Promise((resolve) => {
     let child
     try {
-      child = spawn('ffmpeg', [
+      child = spawn(ffmpegPath, [
         '-hide_banner', '-loglevel', 'error', '-y',
         '-i', srcPath,
         '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '28',

@@ -3,6 +3,7 @@ import {
   GlobalFonts
 } from '@napi-rs/canvas'
 import { spawn } from 'child_process'
+import { ffmpegPath } from '../../lib/ffmpeg-path.js'
 import fs from 'fs'
 import path from 'path'
 import https from 'https'
@@ -620,7 +621,7 @@ async function makeVideo(text) {
 
   const ff =
     spawn(
-      'ffmpeg',
+      ffmpegPath,
       [
         '-y',
         '-f',

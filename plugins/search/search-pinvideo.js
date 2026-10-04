@@ -9,6 +9,7 @@
 
 import fetch from 'node-fetch'
 import { exec } from 'child_process'
+import { ffmpegShell } from '../../lib/ffmpeg-path.js'
 import fs from 'fs'
 import { promisify } from 'util'
 
@@ -55,7 +56,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
         const m3u8Url = randomVideo.videoUrl
         
         try {
-            const ffmpegCmd = `ffmpeg -y -loglevel error -i "${m3u8Url}" -c copy -bsf:a aac_adtstoasc "${outputPath}"`
+            const ffmpegCmd = `${ffmpegShell()} -y -loglevel error -i "${m3u8Url}" -c copy -bsf:a aac_adtstoasc "${outputPath}"`
             await execAsync(ffmpegCmd)
             
             if (!fs.existsSync(outputPath)) {

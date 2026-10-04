@@ -3,6 +3,7 @@ import path from 'path'
 import os from 'os'
 import { randomBytes } from 'crypto'
 import { execFile } from 'child_process'
+import { ffmpegPath } from '../../lib/ffmpeg-path.js'
 import { createCanvas, loadImage, GlobalFonts } from '@napi-rs/canvas'
 import axios from 'axios'
 import sharp from 'sharp'
@@ -160,7 +161,7 @@ async function processAnimatedWebp(buffer, canvasBuffer, outputPath) {
         '-vsync', 'passthrough',
         outputPath
       ]
-      execFile('ffmpeg', ffmpegArgs, (err, stdout, stderr) => {
+      execFile(ffmpegPath, ffmpegArgs, (err, stdout, stderr) => {
         if (err) reject(new Error(stderr || err.message))
         else resolve()
       })
@@ -249,7 +250,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
           '-an',
           outputPath
         ]
-        execFile('ffmpeg', ffmpegArgs, (err, stdout, stderr) => {
+        execFile(ffmpegPath, ffmpegArgs, (err, stdout, stderr) => {
           if (err) reject(new Error(stderr || err.message))
           else resolve()
         })

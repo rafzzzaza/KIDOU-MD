@@ -7,6 +7,7 @@
 
 import { createDecipheriv, randomUUID } from 'crypto';
 import { spawn } from 'child_process';
+import { ffmpegPath } from '../../lib/ffmpeg-path.js';
 import yts from 'yt-search';
 import YTMusic from 'ytmusic-api';
 import sharp from 'sharp';
@@ -440,7 +441,7 @@ async function compressAudio(inputBuffer) {
   return new Promise((resolve, reject) => {
     let ffmpeg;
     try {
-      ffmpeg = spawn('ffmpeg', [
+      ffmpeg = spawn(ffmpegPath, [
         '-hide_banner',
         '-loglevel', 'error',
         '-i', 'pipe:0',

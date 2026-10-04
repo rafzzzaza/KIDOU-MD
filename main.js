@@ -1,5 +1,3 @@
-process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
-
 import fs from 'fs';
 import { spawn } from 'child_process';
 import { tmpdir } from 'os';
@@ -9,6 +7,7 @@ import path, { join } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { platform } from 'process';
 import { createRequire } from 'module';
+import { ffmpegPath, ffprobePath, usingBundledFfmpeg, resolveFromPath, isWindowsSystemBinary } from './lib/ffmpeg-path.js';
 
 import chalk from 'chalk';
 import pino from 'pino';
@@ -682,28 +681,53 @@ global.resetInterval = setInterval(async () => {
  * QUICK TEST
  * ============================================================ */
 async function _quickTest() {
-    let test = await Promise.all([
-        spawn('ffmpeg'),
-        spawn('ffprobe'),
-        spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-filter_complex', 'color', '-frames:v', '1', '-f', 'webp', '-']),
-        spawn('convert'),
-        spawn('magick'),
-        spawn('gm'),
-        spawn('find', ['--version'])
-    ].map(p => {
-        return Promise.race([
-            new Promise(resolve => p.on('close', code => resolve(code !== 127))),
-            new Promise(resolve => p.on('error', () => resolve(false)))
-        ]);
-    }));
+    // Resolved npm-installed binaries are used directly; PATH is only a fallback.
+    const probe = (bin, args = []) =>
+        new Promise(resolve => {
+            const child = spawn(bin, args, { stdio: 'ignore' });
+            let settled = false;
+            const done = value => {
+                if (!settled) {
+                    settled = true;
+                    resolve(value);
+                }
+            };
+            child.on('error', () => done(false));
+            child.on('close', code => done(code === 0));
+        });
 
-    let [ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, find] = test;
+    let [ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, find] = await Promise.all([
+        probe(ffmpegPath, ['-version']),
+        probe(ffprobePath, ['-version']),
+        probe(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-filter_complex', 'color', '-frames:v', '1', '-f', 'webp', '-']),
+        probe('convert', ['--version']),
+        probe('magick', ['--version']),
+        probe('gm', ['version']),
+        probe('find', ['--version'])
+    ]);
+
+    // C:\Windows\System32 ships its own convert.exe (FAT->NTFS) and find.exe
+    // (text search). Both exit non-zero for foreign flags yet still look
+    // "present", so drop them when they resolve inside the Windows dir.
+    if (convert && isWindowsSystemBinary(resolveFromPath('convert'))) convert = false;
+    if (find && isWindowsSystemBinary(resolveFromPath('find'))) find = false;
+
     global.support = { ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, find };
     Object.freeze(global.support);
 
-    if (!global.support.ffmpeg) console.log('Install ffmpeg (pkg install ffmpeg)');
-    if (global.support.ffmpeg && !global.support.ffmpegWebp) console.log('Stickers may not animated without libwebp');
-    if (!global.support.convert && !global.support.magick && !global.support.gm) console.log('Install imagemagick (pkg install imagemagick)');
+    if (global.support.ffmpeg) {
+        console.log(`FFmpeg siap (${usingBundledFfmpeg ? 'bundled via npm' : 'dari PATH'})`);
+    } else {
+        console.log('FFmpeg tidak ditemukan. Jalankan `npm install` untuk memuat binary bawaan.');
+    }
+
+    if (global.support.ffmpeg && !global.support.ffmpegWebp) {
+        console.log('Sticker animasi mungkin tidak jalan karena libwebp tidak tersedia.');
+    }
+
+    if (!global.support.convert && !global.support.magick && !global.support.gm) {
+        console.log('ImageMagick tidak ditemukan. Fitur konversi gambar tambahan akan dilewati.');
+    }
 }
 
 await _quickTest();

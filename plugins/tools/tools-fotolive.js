@@ -9,7 +9,7 @@
 import fs from 'fs';
 import os from 'os';
 import flPath from 'path';
-import ffFotoLive from 'fluent-ffmpeg';
+import ffFotoLive from '../../lib/ffmpeg-path.js';
 import { downloadContentFromMessage, prepareWAMessageMedia, generateWAMessageFromContent } from '@rexxhayanasi/elaina-baileys';
 
 let handler = async (m, { conn, isOwner }) => {

@@ -5,6 +5,7 @@
  * YTMP4 : Auto Compress + WhatsApp Compatible
  */
 import { spawn } from 'node:child_process';
+import { ffmpegPath } from '../../lib/ffmpeg-path.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -207,7 +208,7 @@ async function downloadBuffer(url) {
  */
 function checkFFmpeg() {
     return new Promise(resolve => {
-        const ffmpeg = spawn('ffmpeg', ['-version']);
+        const ffmpeg = spawn(ffmpegPath, ['-version']);
         ffmpeg.on('error', () => {
             resolve(false);
         });
@@ -257,7 +258,7 @@ function compressMP4(inputBuffer) {
                 outputPath
             ];
 
-            const ffmpeg = spawn('ffmpeg', args);
+            const ffmpeg = spawn(ffmpegPath, args);
             let stderr = '';
 
             ffmpeg.stderr.on('data', data => {

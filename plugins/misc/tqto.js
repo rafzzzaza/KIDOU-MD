@@ -1,7 +1,7 @@
 ﻿import sharp from 'sharp'
 import { prepareWAMessageMedia } from '@rexxhayanasi/elaina-baileys'
 
-const THUMB_URL = global.images?.ratio_16_9?.url || 'https://raw.githubusercontent.com/rafzzzaza/uploader/main/1783126493162-298.jpg'
+const THUMB_URL = global.images?.ratio_16_9?.url || 'https://github.com/rafzzzaza/gambar/blob/main/menu.png?raw=true'
 const URL = global.links?.github || 'https://github.com'
 
 let handler = async (m, { conn }) => {

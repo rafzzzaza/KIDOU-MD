@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import ffmpeg from 'fluent-ffmpeg'
+import ffmpeg from '../../lib/ffmpeg-path.js'
 import { tmpdir } from 'os'
 import { downloadContentFromMessage } from '@rexxhayanasi/elaina-baileys'
 

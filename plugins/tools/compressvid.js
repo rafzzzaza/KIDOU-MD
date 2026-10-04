@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
-import ffmpeg from 'fluent-ffmpeg'
+import ffmpeg from '../../lib/ffmpeg-path.js'
 import sharp from 'sharp'
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
